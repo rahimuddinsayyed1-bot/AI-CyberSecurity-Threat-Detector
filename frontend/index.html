@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<title>AI Cybersecurity Threat Detector</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+
+background-image:
+url(
+"https://eu-images.contentstack.com/v3/assets/blt69509c9116440be8/blt36a0428a38e6991e/6920bd2b8054983f1ebfec53/AI_cybersecurity-WorldImages-JPRUTH.jpg?width=960&auto=webp&quality=80&format=jpg&disable=upscale");
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+background-attachment:fixed;
+color:white;
+}
+
+.container{
+display:flex;
+height:100vh;
+}
+
+.sidebar{
+width:260px;
+background:#081224;
+padding:30px;
+}
+
+.logo{
+font-size:30px;
+color:#00bfff;
+margin-bottom:40px;
+font-weight:bold;
+}
+
+.menu button{
+width:100%;
+padding:18px;
+margin-bottom:15px;
+border:none;
+background:#102445;
+color:white;
+font-size:18px;
+border-radius:15px;
+cursor:pointer;
+}
+
+.menu button:hover{
+background:#2563eb;
+}
+
+.main{
+flex:1;
+padding:30px;
+overflow:auto;
+background:
+rgba(
+0,
+0,
+0,
+0.45
+);
+
+backdrop-filter:
+blur(0px);
+
+}
+
+.page{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+}
+
+.search{
+padding:18px;
+width:300px;
+border-radius:50px;
+border:none;
+}
+
+.hero{
+display:flex;
+gap:40px;
+align-items:center;
+}
+
+.hero img{
+width:550px;
+border-radius:20px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+margin-top:20px;
+}
+
+.card{
+background:#0f1f38;
+padding:25px;
+border-radius:20px;
+}
+
+.card h1{
+color:#00bfff;
+}
+
+.graph-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.section{
+background:#0f1f38;
+padding:25px;
+border-radius:20px;
+margin-top:30px;
+}
+
+canvas{
+background:#081224;
+padding:20px;
+border-radius:20px;
+}
+
+.bigbtn{
+width:450px;
+padding:25px;
+font-size:28px;
+background:#2563eb;
+border:none;
+color:white;
+border-radius:20px;
+cursor:pointer;
+}
+
+.result{
+font-size:40px;
+margin-top:30px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th,td{
+padding:15px;
+text-align:center;
+border-bottom:1px solid #233;
+}
+
+#map{
+height:600px;
+border-radius:20px;
+overflow:hidden;
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+<div class="sidebar">
+<div class="logo">
+🛡 Cyber AI
+</div>
+<div class="menu">
+<button onclick="show('home')">Home</button>
+<button onclick="show('dashboard')">
+Dashboard
+</button>
+<button onclick="show('graph')">
+Graphs
+</button>
+<button onclick="show('detect')">
+Detection
+</button>
+<button onclick="show('mapPage')">
+Map
+</button>
+</div>
+</div>
+<div class="main">
+<div class="top">
+<h1>
+AI Cybersecurity Threat Detector
+</h1>
+<input
+class="search"
+placeholder="Search"
+/>
+</div>
+<!-- HOME -->
+<div id="home" class="page active">
+<div class="hero">
+</div>
+<div>
+    <br>
+    
+<h1>
+AI Detection for Cybersecurity
+</h1>
+<br>
+<p>
+Monitor threats and detect attacks in real time.
+</p>
+<div>
+    <br>
+    <p>An AI Cybersecurity Threat Detector is a smart security system that uses Artificial Intelligence and Machine Learning to detect:<br>
+<br>Cyber attacks
+<br>Malware activity
+<br>Phishing attempts
+<br>Unauthorized access
+<br>Suspicious network behavior</p>
+<br><p>The overview of the project is to build an AI-powered system that monitors network/system activity and detects cyber threats in real time across the globe with point-of-interest (POI) mapping.</p>
+</div>
+</div>
+</div>
+<!-- DASHBOARD -->
+<div id="dashboard" class="page">
+<div class="cards">
+<div class="card">
+<h3>Total Threats</h3>
+<h1 id="threats">
+1248
+</h1>
+</div>
+<div class="card">
+<h3>Alerts</h3>
+<h1 id="alerts">
+23
+</h1>
+</div>
+<div class="card">
+<h3>Blocked</h3>
+<h1>942</h1>
+</div>
+<div class="card">
+<h3>Vulnerabilities</h3>
+<h1>17</h1>
+</div>
+</div>
+<div class="graph-grid">
+<div class="section">
+<h2>
+Traffic
+</h2>
+<canvas id="trafficChart"></canvas>
+</div>
+<div class="section">
+<h2>
+Threat Types
+</h2>
+<canvas id="pieChart"></canvas>
+</div>
+</div>
+</div>
+<!-- GRAPH -->
+<div id="graph" class="page">
+<div class="section">
+<h2>
+Detection Bar Chart
+</h2>
+<canvas id="barChart"></canvas>
+</div>
+<div class="section">
+<h2>
+Threat Trend
+</h2>
+<canvas id="lineChart"></canvas>
+</div>
+</div>
+<!-- MAP -->
+<div id="mapPage" class="page">
+<div class="section">
+<h2>
+Threat Detection Location
+</h2>
+<div id="map"></div>
+</div>
+</div>
+<!-- DETECT -->
+<div id="detect" class="page">
+<h1>
+AI Detection
+</h1>
+<br>
+<button
+class="bigbtn"
+onclick="detect()">
+RUN AI DETECTION
+</button>
+<div
+id="result"
+class="result">
+Waiting...
+</div>
+<div class="section">
+<h2>
+Detection History
+</h2>
+<table>
+<thead>
+<tr>
+<th>No</th>
+<th>Score</th>
+<th>Status</th>
+<th>Location</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody id="historyBody">
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<script>
+function show(id){
+document
+.querySelectorAll(".page")
+.forEach(
+x=>x.classList.remove("active")
+)
+document
+.getElementById(id)
+.classList.add("active")
+if(id==="mapPage"){
+setTimeout(
+()=>map.invalidateSize(),
+300
+)
+}
+}
+let count=0
+const trafficChartObj =
+new Chart(
+trafficChart,
+{
+type:"line",
+data:{
+labels:["1","2"],
+datasets:[
+{
+label:"Traffic",
+data:[40,60],
+borderColor:"#00ff99"
+}
+]
+}
+}
+)
+const pieChartObj =
+new Chart(
+pieChart,
+{
+type:"pie",
+
+data:{
+labels:[
+"Malware",
+"DDoS",
+"Phishing"
+],
+
+datasets:[
+{
+data:[
+40,
+30,
+30
+],
+
+backgroundColor:[
+"#ff4d4d",
+"#2563eb",
+"#00ff99"
+]
+
+}
+]
+
+}
+
+}
+)
+const bar=
+new Chart(
+barChart,
+{
+type:"bar",
+data:{
+labels:[],
+datasets:[
+{
+label:"Threat Score",
+data:[],
+backgroundColor:"#00bfff"
+}
+]
+}
+}
+)
+const line=
+new Chart(
+lineChart,
+{
+type:"line",
+data:{
+labels:[],
+datasets:[
+{
+label:"Trend",
+data:[],
+borderColor:"#00ff99"
+}
+]
+}
+}
+)
+const map=
+L.map("map")
+.setView(
+[20,0],
+2
+)
+L.tileLayer(
+"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+)
+.addTo(map)
+let markers=[]
+const locations=[
+["USA",37,-95],
+["India",20,78],
+["Germany",51,10],
+["Japan",35,139],
+["Brazil",-14,-51],
+["Australia",-25,133]
+]
+function detect(){
+
+count++
+
+
+let score=
+Math.floor(
+Math.random()*100
+)
+
+
+let status=
+
+score>50
+
+?
+
+"⚠ THREAT DETECTED"
+
+:
+
+"✅ SYSTEM SAFE"
+
+
+
+document
+.getElementById(
+"result"
+)
+.innerHTML=
+status
+
+
+
+/* DASHBOARD */
+
+document
+.getElementById(
+"threats"
+)
+.innerHTML=
+1248+count
+
+
+document
+.getElementById(
+"alerts"
+)
+.innerHTML=
+23+count
+
+
+
+/* LOCATION */
+
+let loc=
+
+locations[
+Math.floor(
+Math.random()
+*
+locations.length
+)
+]
+
+
+
+/* TABLE */
+
+historyBody.insertAdjacentHTML(
+
+"beforeend",
+
+`
+
+<tr>
+
+<td>${count}</td>
+
+<td>${score}</td>
+
+<td>${status}</td>
+
+<td>${loc[0]}</td>
+
+<td>
+
+${new Date()
+.toLocaleTimeString()}
+
+</td>
+
+</tr>
+
+`
+
+)
+
+
+
+/* BAR */
+
+bar.data.labels.push(count)
+
+bar.data.datasets[0]
+.data.push(score)
+
+bar.update()
+
+
+
+/* LINE */
+
+line.data.labels.push(count)
+
+line.data.datasets[0]
+.data.push(score)
+
+line.update()
+
+
+
+/* DASHBOARD LINE */
+
+trafficChartObj
+.data
+.labels
+.push(count)
+
+trafficChartObj
+.data
+.datasets[0]
+.data
+.push(score)
+
+trafficChartObj.update()
+
+
+
+/* DASHBOARD PIE */
+
+pieChartObj
+.data
+.datasets[0]
+.data=[
+
+40+
+count,
+
+30+
+Math.floor(
+count/2
+),
+
+30+
+Math.floor(
+count/3
+)
+
+]
+
+pieChartObj.update()
+
+
+
+/* MAP */
+
+const marker=
+
+L.circleMarker(
+
+[
+loc[1],
+loc[2]
+],
+
+{
+
+radius:12,
+
+color:"#00bfff",
+
+fillColor:"#00ff99",
+
+fillOpacity:0.9
+
+}
+
+)
+
+.addTo(map)
+
+.bindPopup(
+
+`
+<b>${status}</b>
+<br>
+Location:
+${loc[0]}
+<br>
+Score:
+${score}
+`
+
+)
+
+
+markers.push(marker)
+
+
+
+/* OPEN GRAPH */
+
+show(
+"graph"
+)
+
+
+
+setTimeout(
+
+()=>{
+
+show(
+"mapPage"
+)
+
+map.invalidateSize()
+
+map.flyTo(
+
+[
+loc[1],
+loc[2]
+],
+
+4
+
+)
+
+marker.openPopup()
+
+},
+
+2000
+
+)
+
+}
+</script>
+</body>
+</html>
