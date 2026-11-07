@@ -5,12 +5,11 @@
 <meta name="viewport" content="width=device-width">
 <title>AI Cybersecurity Threat Detector</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-<script
-src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
+<!-- Google Maps JavaScript API with User Key -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXPiQRyows0dw3RuWFo3rfcjVur--_cio&callback=initGoogleMap" async defer></script>
+<!-- Leaflet Fallback Engine -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{
 margin:0;
@@ -260,7 +259,7 @@ Monitor threats and detect attacks in real time.
 </div>
 <div class="card">
 <h3>Blocked</h3>
-<h1>942</h1>
+<h1 id="blockedCount">942</h1>
 </div>
 <div class="card">
 <h3>Vulnerabilities</h3>
@@ -300,27 +299,49 @@ Threat Trend
 <!-- MAP -->
 <div id="mapPage" class="page">
 <div class="section">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
 <h2>
 Threat Detection Location
 </h2>
+<div id="mapStatusBadge" style="font-size:13px; font-weight:bold; background:#081224; color:#00ff99; padding:6px 14px; border-radius:20px; border:1px solid #00ff99; display:flex; align-items:center; gap:6px;">
+<span>🌐</span> <span id="mapEngineName">Google Maps (Cyber Dark)</span>
+</div>
+</div>
 <div id="map"></div>
 </div>
 </div>
 <!-- DETECT -->
 <div id="detect" class="page">
 <h1>
-AI Detection
+AI Threat Detection Console
 </h1>
 <br>
+<div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
 <button
 class="bigbtn"
+style="cursor:pointer;"
 onclick="detect()">
-RUN AI DETECTION
+⚡ RUN AI DETECTION
 </button>
+<button
+style="padding:16px 24px; font-size:16px; background:#00ff99; color:#081224; font-weight:bold; border:none; border-radius:15px; cursor:pointer; box-shadow:0 4px 15px rgba(0,255,153,0.3); transition:transform 0.2s;"
+onmouseover="this.style.transform='scale(1.04)'"
+onmouseout="this.style.transform='scale(1)'"
+onclick="detect('safe')">
+✅ Test Safe Traffic
+</button>
+<button
+style="padding:16px 24px; font-size:16px; background:#ff4d4d; color:white; font-weight:bold; border:none; border-radius:15px; cursor:pointer; box-shadow:0 4px 15px rgba(255,77,77,0.3); transition:transform 0.2s;"
+onmouseover="this.style.transform='scale(1.04)'"
+onmouseout="this.style.transform='scale(1)'"
+onclick="detect('threat')">
+⚠ Test Attack Threat
+</button>
+</div>
 <div
 id="result"
 class="result">
-Waiting...
+Waiting for telemetry stream...
 </div>
 <div class="section">
 <h2>
@@ -355,7 +376,13 @@ document
 .classList.add("active")
 if(id==="mapPage"){
 setTimeout(
-()=>map.invalidateSize(),
+()=>{
+if(isGoogleMapsActive && googleMap){
+google.maps.event.trigger(googleMap, "resize");
+} else if(leafletMap){
+leafletMap.invalidateSize();
+}
+},
 300
 )
 }
@@ -446,273 +473,356 @@ borderColor:"#00ff99"
 }
 }
 )
-const map=
-L.map("map")
-.setView(
-[20,0],
-2
-)
-L.tileLayer(
-"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-)
-.addTo(map)
-let markers=[]
+let googleMap = null;
+let leafletMap = null;
+let googleMarkers = [];
+let leafletMarkers = [];
+let isGoogleMapsActive = false;
+
 const locations=[
-["USA",37,-95],
-["India",20,78],
-["Germany",51,10],
-["Japan",35,139],
-["Brazil",-14,-51],
-["Australia",-25,133]
-]
-function detect(){
-
-count++
-
-
-let score=
-Math.floor(
-Math.random()*100
-)
-
-
-let status=
-
-score>50
-
-?
-
-"⚠ THREAT DETECTED"
-
-:
-
-"✅ SYSTEM SAFE"
-
-
-
-document
-.getElementById(
-"result"
-)
-.innerHTML=
-status
-
-
-
-/* DASHBOARD */
-
-document
-.getElementById(
-"threats"
-)
-.innerHTML=
-1248+count
-
-
-document
-.getElementById(
-"alerts"
-)
-.innerHTML=
-23+count
-
-
-
-/* LOCATION */
-
-let loc=
-
-locations[
-Math.floor(
-Math.random()
-*
-locations.length
-)
-]
-
-
-
-/* TABLE */
-
-historyBody.insertAdjacentHTML(
-
-"beforeend",
-
-`
-
-<tr>
-
-<td>${count}</td>
-
-<td>${score}</td>
-
-<td>${status}</td>
-
-<td>${loc[0]}</td>
-
-<td>
-
-${new Date()
-.toLocaleTimeString()}
-
-</td>
-
-</tr>
-
-`
-
-)
-
-
-
-/* BAR */
-
-bar.data.labels.push(count)
-
-bar.data.datasets[0]
-.data.push(score)
-
-bar.update()
-
-
-
-/* LINE */
-
-line.data.labels.push(count)
-
-line.data.datasets[0]
-.data.push(score)
-
-line.update()
-
-
-
-/* DASHBOARD LINE */
-
-trafficChartObj
-.data
-.labels
-.push(count)
-
-trafficChartObj
-.data
-.datasets[0]
-.data
-.push(score)
-
-trafficChartObj.update()
-
-
-
-/* DASHBOARD PIE */
-
-pieChartObj
-.data
-.datasets[0]
-.data=[
-
-40+
-count,
-
-30+
-Math.floor(
-count/2
-),
-
-30+
-Math.floor(
-count/3
-)
-
-]
-
-pieChartObj.update()
-
-
-
-/* MAP */
-
-const marker=
-
-L.circleMarker(
-
-[
-loc[1],
-loc[2]
-],
-
-{
-
-radius:12,
-
-color:"#00bfff",
-
-fillColor:"#00ff99",
-
-fillOpacity:0.9
-
+  ["USA", 37.0902, -95.7129],
+  ["India", 20.5937, 78.9629],
+  ["United Kingdom", 55.3781, -3.4360],
+  ["Germany", 51.1657, 10.4515],
+  ["Japan", 36.2048, 138.2529],
+  ["Canada", 56.1304, -106.3468],
+  ["France", 46.2276, 2.2137],
+  ["Australia", -25.2744, 133.7751],
+  ["Brazil", -14.2350, -51.9253],
+  ["Singapore", 1.3521, 103.8198],
+  ["South Korea", 35.9078, 127.7669],
+  ["Netherlands", 52.1326, 5.2913],
+  ["Russia", 61.5240, 105.3188],
+  ["China", 35.8617, 104.1954],
+  ["United Arab Emirates", 23.4241, 53.8478],
+  ["Saudi Arabia", 23.8859, 45.0792],
+  ["South Africa", -30.5595, 22.9375],
+  ["Italy", 41.8719, 12.5674],
+  ["Spain", 40.4637, -3.7492],
+  ["Sweden", 60.1282, 18.6435],
+  ["Switzerland", 46.8182, 8.2275],
+  ["Israel", 31.0461, 34.8516],
+  ["Turkey", 38.9637, 35.2433],
+  ["Mexico", 23.6345, -102.5528],
+  ["Argentina", -38.4161, -63.6167],
+  ["Poland", 51.9194, 19.1451],
+  ["Indonesia", -0.7893, 113.9213],
+  ["Malaysia", 4.2105, 101.9758],
+  ["Egypt", 26.8206, 30.8025],
+  ["Nigeria", 9.0820, 8.6753],
+  ["New Zealand", -40.9006, 174.8860],
+  ["Ireland", 53.1424, -7.6921]
+];
+
+// Cyber SOC Dark Styling for Google Maps
+const cyberDarkStyle = [
+  { "elementType": "geometry", "stylers": [{ "color": "#081224" }] },
+  { "elementType": "labels.text.stroke", "stylers": [{ "color": "#081224" }, { "weight": 2 }] },
+  { "elementType": "labels.text.fill", "stylers": [{ "color": "#7da3c8" }] },
+  { "featureType": "administrative", "elementType": "geometry", "stylers": [{ "visibility": "off" }] },
+  { "featureType": "administrative.country", "elementType": "geometry.stroke", "stylers": [{ "color": "#00bfff" }, { "weight": 0.8 }, { "visibility": "on" }] },
+  { "featureType": "administrative.locality", "elementType": "labels.text.fill", "stylers": [{ "color": "#00e1ff" }] },
+  { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
+  { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#11223e" }] },
+  { "featureType": "road", "elementType": "geometry.stroke", "stylers": [{ "color": "#081224" }] },
+  { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "color": "#537397" }] },
+  { "featureType": "transit", "stylers": [{ "visibility": "off" }] },
+  { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#040914" }] },
+  { "featureType": "water", "elementType": "labels.text.fill", "stylers": [{ "color": "#20466e" }] }
+];
+
+window.initGoogleMap = function() {
+  const mapElement = document.getElementById("map");
+  if (!mapElement) return;
+
+  try {
+    googleMap = new google.maps.Map(mapElement, {
+      center: { lat: 20, lng: 0 },
+      zoom: 2,
+      minZoom: 2,
+      styles: cyberDarkStyle,
+      backgroundColor: "#081224",
+      disableDefaultUI: false,
+      zoomControl: true,
+      mapTypeControl: false,
+      scaleControl: true,
+      streetViewControl: false,
+      fullscreenControl: true
+    });
+
+    isGoogleMapsActive = true;
+    const badge = document.getElementById("mapEngineName");
+    if (badge) badge.innerText = "Google Maps (Active)";
+
+    locations.forEach(l => {
+      const gMarker = new google.maps.Marker({
+        position: { lat: l[1], lng: l[2] },
+        map: googleMap,
+        title: `${l[0]} Telemetry Node`,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 6,
+          fillColor: "#00bfff",
+          fillOpacity: 0.85,
+          strokeColor: "#00ff99",
+          strokeWeight: 2
+        }
+      });
+      googleMarkers.push(gMarker);
+    });
+  } catch(e) {
+    console.warn("Google Maps init exception, fallback to Leaflet:", e);
+    initLeafletFallback();
+  }
+};
+
+window.gm_authFailure = function() {
+  console.warn("Google Maps Auth notice: Switching to clean Dark Radar fallback.");
+  initLeafletFallback();
+};
+
+function initLeafletFallback() {
+  if (leafletMap || isGoogleMapsActive) return;
+  const mapElement = document.getElementById("map");
+  if (!mapElement) return;
+  mapElement.innerHTML = "";
+
+  leafletMap = L.map("map").setView([20, 0], 2);
+
+  // Esri World Dark Gray Canvas: 100% free, dark, no watermark, NO API KEY REQUIRED
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; Esri',
+    maxZoom: 16
+  }).addTo(leafletMap);
+
+  const badge = document.getElementById("mapEngineName");
+  if (badge) badge.innerText = "Tactical Dark Radar (Clean)";
+
+  locations.forEach(l => {
+    L.circleMarker([l[1], l[2]], {
+      radius: 6,
+      color: "#00bfff",
+      fillColor: "#00ff99",
+      fillOpacity: 0.8
+    }).addTo(leafletMap).bindPopup(`<b>${l[0]} Sensor Node</b><br>Status: Monitored`);
+  });
 }
 
-)
+// Fallback timer if Google Maps takes too long or fails
+setTimeout(() => {
+  if (!isGoogleMapsActive && !googleMap && !leafletMap) {
+    initLeafletFallback();
+  }
+}, 2500);
+let totalThreats = 1248;
+let activeAlerts = 23;
+let blockedAttacks = 942;
 
-.addTo(map)
+async function detect(forcedMode){
+  count++;
 
-.bindPopup(
+  // Balanced detection mode:
+  // If forcedMode === 'safe', force safe
+  // If forcedMode === 'threat', force threat
+  // If auto, alternate between Safe and Threat (e.g. 50/50) so both are clearly demonstrated!
+  let isThreat = false;
+  if(forcedMode === 'safe'){
+    isThreat = false;
+  } else if(forcedMode === 'threat'){
+    isThreat = true;
+  } else {
+    isThreat = (count % 2 === 1); // Alternates: Threat, Safe, Threat, Safe...
+  }
 
-`
-<b>${status}</b>
-<br>
-Location:
-${loc[0]}
-<br>
-Score:
-${score}
-`
+  let packets, failed_logins, malware_detected;
+  let attackType = "Benign Normal Traffic";
 
-)
+  if(isThreat){
+    packets = Math.floor(Math.random() * 4500) + 4000; // 4000 - 8500 pkts/s (volumetric surge)
+    failed_logins = Math.floor(Math.random() * 45) + 20; // 20 - 65 brute-force attempts
+    malware_detected = 1;
+    const vectors = ["Malware Payload", "DDoS Attack", "Phishing Exploit"];
+    attackType = vectors[Math.floor(Math.random() * vectors.length)];
+  } else {
+    packets = Math.floor(Math.random() * 300) + 120; // 120 - 420 pkts/s (benign)
+    failed_logins = Math.floor(Math.random() * 2); // 0 or 1 attempt
+    malware_detected = 0;
+  }
 
+  let score = isThreat ? Math.floor(Math.random() * 25) + 74 : Math.floor(Math.random() * 25) + 8;
+  let statusText = isThreat ? "⚠ THREAT DETECTED" : "✅ SYSTEM SAFE";
 
-markers.push(marker)
+  // Attempt live inference via Python Flask backend (/predict)
+  try {
+    const res = await fetch("http://127.0.0.1:5000/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ packets, failed_logins, malware_detected })
+    });
+    if(res.ok){
+      const json = await res.json();
+      if(json.prediction === "Threat Detected" || json.is_threat){
+        isThreat = true;
+        statusText = "⚠ THREAT DETECTED";
+        score = json.score || (Math.floor(Math.random() * 20) + 78);
+      } else {
+        isThreat = false;
+        statusText = "✅ SYSTEM SAFE";
+        score = json.score || (Math.floor(Math.random() * 20) + 10);
+      }
+    }
+  } catch(e) {
+    // If backend is offline or on cloud preview, frontend simulation handles it seamlessly
+  }
 
+  // Update Result Banner with high-contrast, professional SOC styling
+  const resultDiv = document.getElementById("result");
+  if(isThreat){
+    resultDiv.innerHTML = `
+      <div style="background:rgba(255,77,77,0.15); border:2px solid #ff4d4d; border-radius:16px; padding:20px 24px; color:#ff4d4d; box-shadow:0 0 25px rgba(255,77,77,0.25);">
+        <div style="font-size:32px; font-weight:bold; letter-spacing:1px; margin-bottom:6px;">⚠ THREAT DETECTED</div>
+        <div style="font-size:16px; color:#ffc0c0; line-height:1.5;">
+          Vector: <strong style="color:#ffffff;">${attackType}</strong> &nbsp;|&nbsp; 
+          Risk Score: <strong style="color:#ff4d4d; font-size:18px;">${score} / 100</strong><br>
+          <span style="font-size:14px; color:#ffaaaa;">Telemetry: ${packets} pkts/s | ${failed_logins} failed logins | Malware Signature: Detected</span>
+        </div>
+      </div>
+    `;
+    totalThreats++;
+    activeAlerts++;
+    blockedAttacks++;
+  } else {
+    resultDiv.innerHTML = `
+      <div style="background:rgba(0,255,153,0.15); border:2px solid #00ff99; border-radius:16px; padding:20px 24px; color:#00ff99; box-shadow:0 0 25px rgba(0,255,153,0.25);">
+        <div style="font-size:32px; font-weight:bold; letter-spacing:1px; margin-bottom:6px;">✅ SYSTEM SAFE</div>
+        <div style="font-size:16px; color:#b8f2d8; line-height:1.5;">
+          Status: <strong style="color:#ffffff;">Clean & Verified Traffic</strong> &nbsp;|&nbsp; 
+          Risk Score: <strong style="color:#00ff99; font-size:18px;">${score} / 100</strong> (Normal)<br>
+          <span style="font-size:14px; color:#a0e6c4;">Telemetry: ${packets} pkts/s (Normal) | ${failed_logins} failed logins | Malware Signature: None</span>
+        </div>
+      </div>
+    `;
+  }
 
+  /* UPDATE DASHBOARD KPI COUNTERS */
+  document.getElementById("threats").innerHTML = totalThreats;
+  document.getElementById("alerts").innerHTML = activeAlerts;
+  const blockedEl = document.getElementById("blockedCount");
+  if(blockedEl) blockedEl.innerHTML = blockedAttacks;
 
-/* OPEN GRAPH */
+  /* CHOOSE COUNTRY FROM 32 GLOBAL LOCATIONS */
+  const loc = locations[Math.floor(Math.random() * locations.length)];
 
-show(
-"graph"
-)
+  /* TABLE AUDIT ROW */
+  const badgeHtml = isThreat
+    ? `<span style="color:#ff4d4d; font-weight:bold; background:rgba(255,77,77,0.18); padding:5px 12px; border-radius:12px; border:1px solid #ff4d4d;">⚠ THREAT</span>`
+    : `<span style="color:#00ff99; font-weight:bold; background:rgba(0,255,153,0.18); padding:5px 12px; border-radius:12px; border:1px solid #00ff99;">✅ SAFE</span>`;
 
+  historyBody.insertAdjacentHTML(
+    "afterbegin",
+    `
+    <tr>
+      <td>${count}</td>
+      <td><strong style="color:${isThreat ? '#ff4d4d' : '#00ff99'}; font-size:15px;">${score}</strong></td>
+      <td>${badgeHtml}</td>
+      <td><strong>${loc[0]}</strong></td>
+      <td>${new Date().toLocaleTimeString()}</td>
+    </tr>
+    `
+  );
 
+  /* UPDATE CHARTS */
+  bar.data.labels.push(count);
+  bar.data.datasets[0].data.push(score);
+  bar.update();
 
-setTimeout(
+  line.data.labels.push(count);
+  line.data.datasets[0].data.push(score);
+  line.update();
 
-()=>{
+  trafficChartObj.data.labels.push(count);
+  trafficChartObj.data.datasets[0].data.push(packets);
+  trafficChartObj.update();
 
-show(
-"mapPage"
-)
+  if(isThreat){
+    if(attackType.includes("Malware")) pieChartObj.data.datasets[0].data[0] += 1;
+    else if(attackType.includes("DDoS")) pieChartObj.data.datasets[0].data[1] += 1;
+    else pieChartObj.data.datasets[0].data[2] += 1;
+    pieChartObj.update();
+  }
 
-map.invalidateSize()
+  /* MAP PINPOINT & ANIMATION */
+  const markerColor = isThreat ? "#ff4d4d" : "#00ff99";
+  const strokeColor = isThreat ? "#ff9999" : "#00bfff";
 
-map.flyTo(
+  if (isGoogleMapsActive && googleMap) {
+    const gMarker = new google.maps.Marker({
+      position: { lat: loc[1], lng: loc[2] },
+      map: googleMap,
+      title: `${loc[0]} - ${statusText}`,
+      animation: google.maps.Animation.DROP,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 13,
+        fillColor: markerColor,
+        fillOpacity: 0.95,
+        strokeColor: strokeColor,
+        strokeWeight: 3
+      }
+    });
 
-[
-loc[1],
-loc[2]
-],
+    const infoWindow = new google.maps.InfoWindow({
+      content: `
+        <div style="color:#081224;padding:8px;font-family:Arial;min-width:160px;line-height:1.4;">
+          <b style="color:${isThreat ? '#dc2626' : '#16a34a'};font-size:15px;">${statusText}</b>
+          <div style="margin-top:6px;font-size:12px;color:#333;">
+            <strong>Country:</strong> ${loc[0]}<br/>
+            <strong>Threat Score:</strong> ${score} / 100<br/>
+            <strong>Telemetry:</strong> ${packets} pkts/s<br/>
+            <strong>Time:</strong> ${new Date().toLocaleTimeString()}
+          </div>
+        </div>
+      `
+    });
 
-4
+    infoWindow.open(googleMap, gMarker);
+    googleMarkers.push(gMarker);
 
-)
+    show("graph");
+    setTimeout(() => {
+      show("mapPage");
+      google.maps.event.trigger(googleMap, "resize");
+      googleMap.panTo({ lat: loc[1], lng: loc[2] });
+      googleMap.setZoom(4);
+    }, 1800);
 
-marker.openPopup()
+  } else {
+    if (!leafletMap) initLeafletFallback();
+    if (leafletMap) {
+      const marker = L.circleMarker([loc[1], loc[2]], {
+        radius: 12,
+        color: strokeColor,
+        fillColor: markerColor,
+        fillOpacity: 0.95
+      }).addTo(leafletMap).bindPopup(`
+        <div style="font-family:Arial; line-height:1.4;">
+          <b style="color:${isThreat ? '#ff4d4d' : '#00ff99'}; font-size:15px;">${statusText}</b><br/>
+          <b>Country:</b> ${loc[0]}<br/>
+          <b>Score:</b> ${score} / 100<br/>
+          <b>Traffic:</b> ${packets} pkts/s
+        </div>
+      `);
+      leafletMarkers.push(marker);
 
-},
-
-2000
-
-)
-
+      show("graph");
+      setTimeout(() => {
+        show("mapPage");
+        leafletMap.invalidateSize();
+        leafletMap.flyTo([loc[1], loc[2]], 4);
+        marker.openPopup();
+      }, 1800);
+    }
+  }
 }
 </script>
 </body>
