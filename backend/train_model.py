@@ -23,6 +23,8 @@ model = RandomForestClassifier()
 
 model.fit(X_train, y_train)
 
-joblib.dump(model, 'model.pkl')
+import os
+model_path = os.path.join(os.path.dirname(__file__), 'model.pkl')
+joblib.dump(model, model_path)
 
 print("AI Model Trained Successfully")

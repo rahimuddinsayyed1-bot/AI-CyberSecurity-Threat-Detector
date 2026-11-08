@@ -303,8 +303,16 @@ Threat Trend
 <h2>
 Threat Detection Location
 </h2>
+<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+<div style="font-size:13px; font-weight:bold; background:#0f1f38; color:#00bfff; padding:6px 14px; border-radius:20px; border:1px solid #00bfff;">
+📍 Detections Plotted: <span id="plottedCount" style="color:#00ff99; font-weight:bold;">0</span>
+</div>
+<button onclick="clearMapPoints()" style="background:#1b2a47; color:#ff9999; border:1px solid #ff4d4d; border-radius:20px; padding:6px 14px; font-size:12px; cursor:pointer; font-weight:bold; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+🗑 Reset Points
+</button>
 <div id="mapStatusBadge" style="font-size:13px; font-weight:bold; background:#081224; color:#00ff99; padding:6px 14px; border-radius:20px; border:1px solid #00ff99; display:flex; align-items:center; gap:6px;">
 <span>🌐</span> <span id="mapEngineName">Google Maps (Cyber Dark)</span>
+</div>
 </div>
 </div>
 <div id="map"></div>
@@ -553,23 +561,6 @@ window.initGoogleMap = function() {
     isGoogleMapsActive = true;
     const badge = document.getElementById("mapEngineName");
     if (badge) badge.innerText = "Google Maps (Active)";
-
-    locations.forEach(l => {
-      const gMarker = new google.maps.Marker({
-        position: { lat: l[1], lng: l[2] },
-        map: googleMap,
-        title: `${l[0]} Telemetry Node`,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 6,
-          fillColor: "#00bfff",
-          fillOpacity: 0.85,
-          strokeColor: "#00ff99",
-          strokeWeight: 2
-        }
-      });
-      googleMarkers.push(gMarker);
-    });
   } catch(e) {
     console.warn("Google Maps init exception, fallback to Leaflet:", e);
     initLeafletFallback();
@@ -597,15 +588,19 @@ function initLeafletFallback() {
 
   const badge = document.getElementById("mapEngineName");
   if (badge) badge.innerText = "Tactical Dark Radar (Clean)";
+}
 
-  locations.forEach(l => {
-    L.circleMarker([l[1], l[2]], {
-      radius: 6,
-      color: "#00bfff",
-      fillColor: "#00ff99",
-      fillOpacity: 0.8
-    }).addTo(leafletMap).bindPopup(`<b>${l[0]} Sensor Node</b><br>Status: Monitored`);
+function clearMapPoints() {
+  googleMarkers.forEach(m => {
+    if(m && m.setMap) m.setMap(null);
   });
+  googleMarkers = [];
+  leafletMarkers.forEach(m => {
+    if(leafletMap && m) leafletMap.removeLayer(m);
+  });
+  leafletMarkers = [];
+  const el = document.getElementById("plottedCount");
+  if(el) el.innerText = "0";
 }
 
 // Fallback timer if Google Maps takes too long or fails
@@ -787,6 +782,8 @@ async function detect(forcedMode){
 
     infoWindow.open(googleMap, gMarker);
     googleMarkers.push(gMarker);
+    const plottedEl = document.getElementById("plottedCount");
+    if(plottedEl) plottedEl.innerText = googleMarkers.length;
 
     show("graph");
     setTimeout(() => {
@@ -813,6 +810,8 @@ async function detect(forcedMode){
         </div>
       `);
       leafletMarkers.push(marker);
+      const plottedEl = document.getElementById("plottedCount");
+      if(plottedEl) plottedEl.innerText = leafletMarkers.length;
 
       show("graph");
       setTimeout(() => {
