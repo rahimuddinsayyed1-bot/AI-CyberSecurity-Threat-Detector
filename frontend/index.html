@@ -21,8 +21,7 @@ font-family:Arial;
 body{
 
 background-image:
-url(
-"https://eu-images.contentstack.com/v3/assets/blt69509c9116440be8/blt36a0428a38e6991e/6920bd2b8054983f1ebfec53/AI_cybersecurity-WorldImages-JPRUTH.jpg?width=960&auto=webp&quality=80&format=jpg&disable=upscale");
+url("cyber_background.jpg");
 background-size:cover;
 background-position:center;
 background-repeat:no-repeat;
@@ -211,10 +210,6 @@ Map
 <h1>
 AI Cybersecurity Threat Detector
 </h1>
-<input
-class="search"
-placeholder="Search"
-/>
 </div>
 <!-- HOME -->
 <div id="home" class="page active">
@@ -324,28 +319,12 @@ Threat Detection Location
 AI Threat Detection Console
 </h1>
 <br>
-<div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
 <button
 class="bigbtn"
 style="cursor:pointer;"
 onclick="detect()">
-⚡ RUN AI DETECTION
+RUN AI DETECTION
 </button>
-<button
-style="padding:16px 24px; font-size:16px; background:#00ff99; color:#081224; font-weight:bold; border:none; border-radius:15px; cursor:pointer; box-shadow:0 4px 15px rgba(0,255,153,0.3); transition:transform 0.2s;"
-onmouseover="this.style.transform='scale(1.04)'"
-onmouseout="this.style.transform='scale(1)'"
-onclick="detect('safe')">
-✅ Test Safe Traffic
-</button>
-<button
-style="padding:16px 24px; font-size:16px; background:#ff4d4d; color:white; font-weight:bold; border:none; border-radius:15px; cursor:pointer; box-shadow:0 4px 15px rgba(255,77,77,0.3); transition:transform 0.2s;"
-onmouseover="this.style.transform='scale(1.04)'"
-onmouseout="this.style.transform='scale(1)'"
-onclick="detect('threat')">
-⚠ Test Attack Threat
-</button>
-</div>
 <div
 id="result"
 class="result">
